@@ -10,116 +10,142 @@ GO
 USE JJABY
 GO
 
+	/***** TABLE Taxonomy *****/
 CREATE TABLE Taxonomy(
 	TaxonomyID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
-	Domain			VARCHAR(20)							NOT NULL,
-	Kingdom			VARCHAR(20)							NOT NULL,
-	Phylum			VARCHAR(20)							NOT NULL,
-	Class			VARCHAR(20)							NOT NULL,
-	[Order]			VARCHAR(20)							NOT NULL,
-	Family			VARCHAR(20)							NOT NULL,
+	Domain			VARCHAR(20)							NULL,
+	Kingdom			VARCHAR(20)							NULL,
+	Phylum			VARCHAR(20)							NULL,
+	Class			VARCHAR(20)							NULL,
+	[Order]			VARCHAR(20)							NULL,
+	Family			VARCHAR(20)							NULL,
 	Genus			VARCHAR(20)							NOT NULL,
 	Species			VARCHAR(20)							NOT NULL,
-	SubSpecies		VARCHAR(20)							NOT NULL
+	SubSpecies		VARCHAR(20)							NULL
 )
+GO
 
+	/***** TABLE Common Names *****//
 CREATE TABLE CommonName(
 	CommonNameID	INT		PRIMARY KEY		IDENTITY	NOT NULL,
 	CommonNameName	VARCHAR(20)							NOT NULL
 )
+GO
 
+	/***** TABLE Species Location: Room *****/
 CREATE TABLE Room(
 	RoomID			INT		PRIMARY KEY		IDENTITY	NOT NULL,
 	RoomName		VARCHAR(20)							NOT NULL
 )
+GO
 
+	/***** TABLE Species Location: Section *****/
 CREATE TABLE Section(
-	SectionID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
+	SectionID		INT		PRIMARY KEY		IDENTITY	NOT NULL, --LOOK AT RENAMING
 	RoomID			INT		REFERENCES Room(RoomID)		NOT NULL,
 	SectionName		VARCHAR(20)							NOT NULL
 )
+GO
 
+	/***** TABLE Species *****/
 CREATE TABLE Species(
 	SpeciesID		INT		PRIMARY KEY		IDENTITY			NOT NULL,
 	TaxonomyID		INT		REFERENCES Taxonomy(TaxonomyID)		NOT NULL,
-	[Population]	VARCHAR(max)								NOT NULL,
-	[Range]			VARCHAR(max)								NOT NULL,
-	Threat			VARCHAR(max)								NOT NULL,
-	Uses			VARCHAR(max)								NOT NULL,
-	Ecology			VARCHAR(max)								NOT NULL,
-	Habitat			VARCHAR(max)								NOT NULL,
-	Size			VARCHAR(max)								NOT NULL,
-	Lifespan		VARCHAR(max)								NOT NULL,
+	Details			XML		DEFAULT('<Population></Population>
+									<Range></Range>
+									<Threat></Threat>
+									<Uses></Uses>
+									<Ecology></Ecology>
+									<Habitat></Habitat>
+									<Size></Size>
+									<Lifespan></Lifespan>')		NOT NULL
 )
+GO
 
+	/***** TABLE Specimen *****/
 CREATE TABLE Specimen(
 	SpecimenID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
-	SpeciesID		INT		REFERENCES Species(SpeciesID)	NOT NULL,
-	SectionID		INT		REFERENCES Section(SectionID)	NOT NULL,
-	Sex				VARCHAR(1)								NOT NULL,
-	Age				VARCHAR(20)								NOT NULL,
-	ArchiveNumber	INT										NOT NULL,
-	[Weight]		VARCHAR(20)								NOT NULL,
-	[Length]		VARCHAR(20)								NOT NULL,
+	SpeciesID		INT		REFERENCES Species(SpeciesID)	NOT NULL,  -- default ?
+	SectionID		INT		REFERENCES Section(SectionID)	NOT NULL,  --ROOM  CABINET  DRAWER  Look at Section comment for info
+	Sex				VARCHAR(1)								NULL,
+	Age				VARCHAR(20)								NULL,
+	ArchiveNumber	INT										NOT NULL, -- Accession number is new primary key
+	[Weight]		VARCHAR(20)								NULL,  -- grams. number data type.
+	[Length]		VARCHAR(20)								NULL,  -- length is different for different species. maybe body measurement is own table
 	--Other Measurements??
 	IdentifiedBy	VARCHAR(30)								NOT NULL,
-	NatureOfIdentification		VARCHAR(30)					NOT NULL,	--Check with Steve
-	CollectedBy		VARCHAR(30)								NOT NULL,
-	PresentedBy		VARCHAR(30)								NOT NULL,
-	PreparedBy		VARCHAR(30)								NOT NULL,
-	Locality		VARCHAR(30)								NOT NULL,
+	NatureOfIdentification		VARCHAR(30)					NOT NULL,	
+	CollectedBy		VARCHAR(30)								NOT NULL, -- collected date field
+	PresentedBy		VARCHAR(30)								NULL, -- presented date field
+	PreparedBy		VARCHAR(30)								NULL, -- prepared date field
+	Locality		VARCHAR(30)								NOT NULL,  -- Break up by country, state, county, township, city, description. partial null in this table
 	CollectingSource	VARCHAR(20)							NOT NULL,
-	EventDate		DATE									NOT NULL,
-	VerificationStatus	VARCHAR(20)							NOT NULL,
-	Coordinates		VARCHAR(30)								NOT NULL,
-	PartTypes		VARCHAR(30)								NOT NULL,	--dafuq
-	Remarks			VARCHAR(40)								NOT NULL
+	EventDate		DATE									NOT NULL, -- Record date record created. Record name of individual recording data. 2 fields.
+	VerificationStatus	VARCHAR(20)							NULL,
+	Coordinates		VARCHAR(30)								NULL, -- How to store this (data type). gps coordinates
+	PartTypes		VARCHAR(30)								NOT NULL, -- each animal has its own part types. part type table? partial nulls in table
+	Remarks			VARCHAR(500)							NULL
 )
+GO
 
-CREATE TABLE Exhibit(
+	/***** TABLE Exhibits *****/
+CREATE TABLE Exhibits(
 	ExhibitID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
 	ExhibitName		VARCHAR(20)							NOT NULL
 )
+GO
 
-CREATE TABLE Images(
-	ImagesID			INT		PRIMARY KEY		IDENTITY		NOT NULL,
-	ImageFileName		VARCHAR(max)							NOT NULL,		--Probably not a VARCHAR
-	ImageResolution		VARCHAR(20)								NOT NULL,		--Also probably not a VARCHAR
-	ResolutionHeight	INT										NOT NULL,
-	ResolutionWidth		INT										NOT NULL
+	/***** TABLE Species to Exhibits Connections *****/
+CREATE TABLE SpeciesAndExhibits(
+	SpeciesID				INT		REFERENCES Species(SpeciesID)		NOT NULL,
+	ExhibitID				INT		REFERENCES Exhibits(ExhibitID)		NOT NULL,
+	PRIMARY KEY (SpeciesID, ExhibitID)
 )
+GO
 
-CREATE TABLE AudioFiles(
-	AudioFilesID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
-	AudioFileName		VARCHAR(30)									NOT NULL
-)
-
-CREATE TABLE VideoFiles(
-	VideoFilesID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
-	VideoURL			VARCHAR(30)									NOT NULL
-)
-
+	/***** TABLE Species to CommonName Connections *****/
 CREATE TABLE SpeciesAndCommonNames(
-	SpeciesAndCommonNamesID	INT		PRIMARY KEY		IDENTITY			NOT NULL,
 	SpeciesID				INT		REFERENCES Species(SpeciesID)		NOT NULL,
 	CommonNameID			INT		REFERENCES CommonName(CommonNameID)	NOT NULL,
+	PRIMARY KEY (SpeciesID, CommonNameID)
 )
+GO
 
-CREATE TABLE SpeciesAndImages(
-	SpeciesAndImagesID	INT		PRIMARY KEY		IDENTITY		NOT NULL,
+	/***** TABLE Species' Images *****/
+CREATE TABLE SpeciesImages(
+	SpeciesImagesID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
 	SpeciesID			INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	ImagesID			INT		REFERENCES	Images(ImagesID)	NOT NULL
+	ImageURL			varchar(100)							NOT NULL,
+	FriendlyName		varchar(100)							NOT NULL
 )
+GO
 
-CREATE TABLE AudioFilesAndImages(
-	SpeciesAndAudioFilesID	INT		PRIMARY KEY		IDENTITY		NOT NULL,
+	/***** TABLE Species' Audio *****/
+CREATE TABLE SpeciesAudio(
+	SpeciesAudioID			INT		PRIMARY KEY		IDENTITY		NOT NULL,
 	SpeciesID				INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	AudioFilesID			INT		REFERENCES	AudioFiles(AudioFilesID)	NOT NULL
+	AudioURL				varchar(100)							NOT NULL,
+	FriendlyName			varchar(100)							NOT NULL
 )
+GO
 
-CREATE TABLE VideoFilesAndImages(
-	SpeciesAndVideoFilesID	INT		PRIMARY KEY		IDENTITY		NOT NULL,
+	/***** TABLE Species' Video *****/
+CREATE TABLE SpeciesVideo(
+	SpeciesVideoID	INT		PRIMARY KEY		IDENTITY		NOT NULL,
 	SpeciesID				INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	VideoFilesID			INT		REFERENCES	VideoFiles(VideoFilesID)	NOT NULL
+	VideoURL				varchar(100)							NOT NULL,
+	FriendlyName			varchar(100)							NOT NULL
 )
+GO
 
+INSERT Taxonomy (Domain, Kingdom, Phylum, Class, [Order], Family, Genus, Species, SubSpecies) VALUES
+	('Animalia', 'Chordata', 'Mammalia', 'Carnivora', 'Mustelidae', 'Mustelinae', 'Mustela', 'nivalis', 'allegheniensis')
+
+INSERT CommonName (CommonNameName) VALUES
+	('Least Weasel')
+
+INSERT Species (Details) VALUES
+	('')
+
+INSERT Specimen (Sex, Age, ArchiveNumber, [Weight], [Length], IdentifiedBy, NatureOfIdentification, CollectedBy, PresentedBy, PreparedBy, Locality, CollectingSource, EventDate, VerificationStatus, Coordinates, PartTypes, Remarks) VALUES
+	('F', 'Mature', '2017.01.02.1a', '', '', 'S. Sullivan', 'Nelson Hofster', 'Jane Holster', 'William J. Hamilton', 'Former soy and corn field', 'wild caught', CAST('2017-01-20 00:00:00' AS SmallDateTime), 'verified', '40.889568/ -81.597623', '', 'killed by house cat')
