@@ -42,7 +42,6 @@ CREATE TABLE Section(
 CREATE TABLE Species(
 	SpeciesID		INT		PRIMARY KEY		IDENTITY			NOT NULL,
 	TaxonomyID		INT		REFERENCES Taxonomy(TaxonomyID)		NOT NULL,
-	Details			XML		DEFAULT('<Population></Population><><><><><><><><><><><><>')									NOT NULL,
 	[Population]	VARCHAR(max)								NOT NULL,
 	[Range]			VARCHAR(max)								NOT NULL,
 	Threat			VARCHAR(max)								NOT NULL,
@@ -84,7 +83,7 @@ CREATE TABLE Exhibit(
 
 CREATE TABLE Images(
 	ImagesID			INT		PRIMARY KEY		IDENTITY		NOT NULL,
-	ImageFileName		VARCHAR(500)							NOT NULL,		--Probably not a VARCHAR
+	ImageFileName		VARCHAR(max)							NOT NULL,		--Probably not a VARCHAR
 	ImageResolution		VARCHAR(20)								NOT NULL,		--Also probably not a VARCHAR
 	ResolutionHeight	INT										NOT NULL,
 	ResolutionWidth		INT										NOT NULL
@@ -101,16 +100,15 @@ CREATE TABLE VideoFiles(
 )
 
 CREATE TABLE SpeciesAndCommonNames(
+	SpeciesAndCommonNamesID	INT		PRIMARY KEY		IDENTITY			NOT NULL,
 	SpeciesID				INT		REFERENCES Species(SpeciesID)		NOT NULL,
 	CommonNameID			INT		REFERENCES CommonName(CommonNameID)	NOT NULL,
-	PRIMARY KEY (SpeciesID, CommonNameID)
 )
 
-CREATE TABLE SpeciesImages(
-	SpeciesImagesID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
+CREATE TABLE SpeciesAndImages(
+	SpeciesAndImagesID	INT		PRIMARY KEY		IDENTITY		NOT NULL,
 	SpeciesID			INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	ImageURL			varchar(100)							NOT NULL,
-	FriendlyName		varchar(100)							NOT NULL
+	ImagesID			INT		REFERENCES	Images(ImagesID)	NOT NULL
 )
 
 CREATE TABLE AudioFilesAndImages(
