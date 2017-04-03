@@ -1,4 +1,6 @@
-﻿USE master
+﻿--EXAMPLE CHANGE!!!!
+
+USE master
 GO
 
 DROP DATABASE JJABY
