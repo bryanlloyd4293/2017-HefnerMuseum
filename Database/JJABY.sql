@@ -3,8 +3,10 @@
 USE master
 GO
 
+
 DROP DATABASE JJABY
 GO
+
 
 CREATE DATABASE JJABY
 GO 
@@ -27,8 +29,8 @@ CREATE TABLE Taxonomy(
 )
 GO
 
-	/***** TABLE Common Names *****//
-CREATE TABLE CommonName(
+	/***** TABLE Common Names *****/
+	CREATE TABLE CommonName(
 	CommonNameID	INT		PRIMARY KEY		IDENTITY	NOT NULL,
 	CommonNameName	VARCHAR(20)							NOT NULL
 )
@@ -37,17 +39,33 @@ GO
 	/***** TABLE Species Location: Room *****/
 CREATE TABLE Room(
 	RoomID			INT		PRIMARY KEY		IDENTITY	NOT NULL,
-	RoomName		VARCHAR(20)							NOT NULL
+	RoomName		VARCHAR(30)							NOT NULL
 )
 GO
 
 	/***** TABLE Species Location: Section *****/
 CREATE TABLE Section(
-	SectionID		INT		PRIMARY KEY		IDENTITY	NOT NULL, --LOOK AT RENAMING
+	SectionID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
 	RoomID			INT		REFERENCES Room(RoomID)		NOT NULL,
-	SectionName		VARCHAR(20)							NOT NULL
+	SectionName		VARCHAR(50)							NULL
 )
 GO
+
+	/***** TABLE Species Location: Cabinet *****/
+CREATE TABLE Cabinet(
+	CabinetID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
+	RoomID			INT		REFERENCES Room(RoomID)		NOT NULL,
+	CabinetName		VARCHAR(5)							NOT NULL,
+	SectionID		INT		REFERENCES Section(SectionID)	NULL
+)
+GO
+
+	/***** TABLE Species Location: Drawer *****/
+CREATE TABLE Drawer(
+	DrawerID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
+	CabinetID		INT		REFERENCES Cabinet(CabinetID) NOT NULL,
+	DrawerName		VARCHAR(10)							NOT NULL
+)
 
 	/***** TABLE Species *****/
 CREATE TABLE Species(
@@ -60,40 +78,73 @@ CREATE TABLE Species(
 									<Ecology></Ecology>
 									<Habitat></Habitat>
 									<Size></Size>
-									<Lifespan></Lifespan>')		NOT NULL
+									<Lifespan></Lifespan>
+									<HaR></HaR>')		NOT NULL --Personal Connections(How to positively impact species or how species relates to individual)
+)
+GO
+
+	/***** TABLE PartType *****/
+CREATE TABLE PartType(
+	PartTypeID		INT		PRIMARY KEY		IDENTITY		NOT NULL
+	-- STEVE NEEDS TO SEE THIS
+)
+GO
+
+	/***** TABLE Locality *****/
+CREATE TABLE Locality(
+	LocalityID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
+	Country			VARCHAR(100)							NULL,
+	State			VARCHAR(100)							NULL,
+	County			VARCHAR(100)							NULL,
+	Township		VARCHAR(100)							NULL,
+	City			VARCHAR(100)							NULL,
+	Description		VARCHAR(500)							NULL
+)
+GO
+
+	/***** TABLE BodyMeasurements *****/
+CREATE TABLE BodyMeasurements(
+	BMID			INT		PRIMARY KEY		IDENTITY	NOT NULL
+	--NEEDS MORE
 )
 GO
 
 	/***** TABLE Specimen *****/
 CREATE TABLE Specimen(
 	SpecimenID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
-	SpeciesID		INT		REFERENCES Species(SpeciesID)	NOT NULL,  -- default ?
-	SectionID		INT		REFERENCES Section(SectionID)	NOT NULL,  --ROOM  CABINET  DRAWER  Look at Section comment for info
+	SpeciesID		INT		REFERENCES Species(SpeciesID)	NOT NULL, 
+	DrawerID		INT		REFERENCES Drawer(DrawerID)		NOT NULL, 
 	Sex				VARCHAR(1)								NULL,
 	Age				VARCHAR(20)								NULL,
 	ArchiveNumber	INT										NOT NULL, -- Accession number is new primary key
-	[Weight]		VARCHAR(20)								NULL,  -- grams. number data type.
-	[Length]		VARCHAR(20)								NULL,  -- length is different for different species. maybe body measurement is own table
+	--[Weight]		VARCHAR(20)								NULL,  -- grams. number data type.
+	--[Length]		VARCHAR(20)								NULL,  -- length is different for different species. maybe body measurement is own table
 	--Other Measurements??
 	IdentifiedBy	VARCHAR(30)								NOT NULL,
 	NatureOfIdentification		VARCHAR(30)					NOT NULL,	
-	CollectedBy		VARCHAR(30)								NOT NULL, -- collected date field
-	PresentedBy		VARCHAR(30)								NULL, -- presented date field
-	PreparedBy		VARCHAR(30)								NULL, -- prepared date field
-	Locality		VARCHAR(30)								NOT NULL,  -- Break up by country, state, county, township, city, description. partial null in this table
+	CollectedBy		VARCHAR(30)								NOT NULL, 
+	DateCollected	DATE									NOT NULL,
+	PresentedBy		VARCHAR(30)								NULL, 
+	DatePresented	DATE									NULL,
+	PreparedBy		VARCHAR(30)								NULL,
+	DatePrepared	DATE									NULL,
+	LocalityID		INT		REFERENCES Locality(LocalityID)	NOT NULL,  
 	CollectingSource	VARCHAR(20)							NOT NULL,
-	EventDate		DATE									NOT NULL, -- Record date record created. Record name of individual recording data. 2 fields.
+	RecordedBy		VARCHAR(30)								NOT NULL,
+	RecordedDate	DATE									NOT NULL,
+	EventDate		DATE									NOT NULL,
 	VerificationStatus	VARCHAR(20)							NULL,
-	Coordinates		VARCHAR(30)								NULL, -- How to store this (data type). gps coordinates
-	PartTypes		VARCHAR(30)								NOT NULL, -- each animal has its own part types. part type table? partial nulls in table
+	Coordinates		VARCHAR(30)								NULL, 
+	PartTypeID		INT		REFERENCES PartType(PartTypeID)	NOT NULL,
 	Remarks			VARCHAR(500)							NULL
 )
 GO
 
 	/***** TABLE Exhibits *****/
 CREATE TABLE Exhibits(
-	ExhibitID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
-	ExhibitName		VARCHAR(20)							NOT NULL
+	ExhibitID		INT		PRIMARY KEY		IDENTITY					NOT NULL,
+	ExhibitName		VARCHAR(20)											NOT NULL,
+	ExhibitDetails	XML		DEFAULT('<Exhibit></Exhibit>')				NOT NULL
 )
 GO
 
@@ -117,7 +168,7 @@ GO
 CREATE TABLE SpeciesImages(
 	SpeciesImagesID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
 	SpeciesID			INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	ImageURL			varchar(100)							NOT NULL,
+	ImageURL			varchar(1000)							NOT NULL,
 	FriendlyName		varchar(100)							NOT NULL
 )
 GO
@@ -126,7 +177,7 @@ GO
 CREATE TABLE SpeciesAudio(
 	SpeciesAudioID			INT		PRIMARY KEY		IDENTITY		NOT NULL,
 	SpeciesID				INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	AudioURL				varchar(100)							NOT NULL,
+	AudioURL				varchar(1000)							NOT NULL,
 	FriendlyName			varchar(100)							NOT NULL
 )
 GO
@@ -138,16 +189,4 @@ CREATE TABLE SpeciesVideo(
 	VideoURL				varchar(100)							NOT NULL,
 	FriendlyName			varchar(100)							NOT NULL
 )
-GO
 
-INSERT Taxonomy (Domain, Kingdom, Phylum, Class, [Order], Family, Genus, Species, SubSpecies) VALUES
-	('Animalia', 'Chordata', 'Mammalia', 'Carnivora', 'Mustelidae', 'Mustelinae', 'Mustela', 'nivalis', 'allegheniensis')
-
-INSERT CommonName (CommonNameName) VALUES
-	('Least Weasel')
-
-INSERT Species (Details) VALUES
-	('')
-
-INSERT Specimen (Sex, Age, ArchiveNumber, [Weight], [Length], IdentifiedBy, NatureOfIdentification, CollectedBy, PresentedBy, PreparedBy, Locality, CollectingSource, EventDate, VerificationStatus, Coordinates, PartTypes, Remarks) VALUES
-	('F', 'Mature', '2017.01.02.1a', '', '', 'S. Sullivan', 'Nelson Hofster', 'Jane Holster', 'William J. Hamilton', 'Former soy and corn field', 'wild caught', CAST('2017-01-20 00:00:00' AS SmallDateTime), 'verified', '40.889568/ -81.597623', '', 'killed by house cat')
