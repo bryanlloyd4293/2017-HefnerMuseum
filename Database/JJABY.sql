@@ -54,7 +54,6 @@ GO
 	/***** TABLE Species Location: Cabinet *****/
 CREATE TABLE Cabinet(
 	CabinetID		INT		PRIMARY KEY		IDENTITY	NOT NULL,
-	RoomID			INT		REFERENCES Room(RoomID)		NOT NULL,
 	CabinetName		VARCHAR(5)							NOT NULL,
 	SectionID		INT		REFERENCES Section(SectionID)	NULL
 )
@@ -71,6 +70,7 @@ CREATE TABLE Drawer(
 CREATE TABLE Species(
 	SpeciesID		INT		PRIMARY KEY		IDENTITY			NOT NULL,
 	TaxonomyID		INT		REFERENCES Taxonomy(TaxonomyID)		NOT NULL,
+	Size			VARCHAR(20)									NOT NULL,
 	Details			XML		DEFAULT('<Population></Population>
 									<Range></Range>
 									<Threat></Threat>
@@ -83,12 +83,7 @@ CREATE TABLE Species(
 )
 GO
 
-	/***** TABLE PartType *****/
-CREATE TABLE PartType(
-	PartTypeID		INT		PRIMARY KEY		IDENTITY		NOT NULL
-	-- STEVE NEEDS TO SEE THIS
-)
-GO
+
 
 	/***** TABLE Locality *****/
 CREATE TABLE Locality(
@@ -98,16 +93,12 @@ CREATE TABLE Locality(
 	County			VARCHAR(100)							NULL,
 	Township		VARCHAR(100)							NULL,
 	City			VARCHAR(100)							NULL,
-	Description		VARCHAR(500)							NULL
+	Coordinates		VARCHAR(30)								NULL, 
+	[Description]		VARCHAR(500)							NULL
 )
 GO
 
-	/***** TABLE BodyMeasurements *****/
-CREATE TABLE BodyMeasurements(
-	BMID			INT		PRIMARY KEY		IDENTITY	NOT NULL
-	--NEEDS MORE
-)
-GO
+
 
 	/***** TABLE Specimen *****/
 CREATE TABLE Specimen(
@@ -116,10 +107,7 @@ CREATE TABLE Specimen(
 	DrawerID		INT		REFERENCES Drawer(DrawerID)		NOT NULL, 
 	Sex				VARCHAR(1)								NULL,
 	Age				VARCHAR(20)								NULL,
-	ArchiveNumber	INT										NOT NULL, -- Accession number is new primary key
-	--[Weight]		VARCHAR(20)								NULL,  -- grams. number data type.
-	--[Length]		VARCHAR(20)								NULL,  -- length is different for different species. maybe body measurement is own table
-	--Other Measurements??
+	AccessionNumber	INT										NOT NULL,
 	IdentifiedBy	VARCHAR(30)								NOT NULL,
 	NatureOfIdentification		VARCHAR(30)					NOT NULL,	
 	CollectedBy		VARCHAR(30)								NOT NULL, 
@@ -130,13 +118,30 @@ CREATE TABLE Specimen(
 	DatePrepared	DATE									NULL,
 	LocalityID		INT		REFERENCES Locality(LocalityID)	NOT NULL,  
 	CollectingSource	VARCHAR(20)							NOT NULL,
-	RecordedBy		VARCHAR(30)								NOT NULL,
-	RecordedDate	DATE									NOT NULL,
+	Recorded		XML										NOT NULL,
 	EventDate		DATE									NOT NULL,
 	VerificationStatus	VARCHAR(20)							NULL,
-	Coordinates		VARCHAR(30)								NULL, 
-	PartTypeID		INT		REFERENCES PartType(PartTypeID)	NOT NULL,
+	OnDisplay		BIT										NOT NULL,
 	Remarks			VARCHAR(500)							NULL
+)
+GO
+
+	/***** TABLE PartType *****/   -- TEMPORARY FOR 385 PURPOSES. NEEDS REDONE
+CREATE TABLE PartType(		
+	PartTypeID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
+	AccessionNumberExtension	VARCHAR(20)					NOT NULL,
+	SpecimenID		INT		REFERENCES Specimen(SpecimenID)	NOT NULL,
+	PartType		VARCHAR(30)								NOT NULL,
+	[Description]	VARCHAR(500)							NULL
+)
+GO
+
+	/***** TABLE BodyMeasurements *****/  --TEMPORARY FOR 385 PURPOSES. NEEDS REDONE
+CREATE TABLE BodyMeasurements( 
+	BMID			INT		PRIMARY KEY		IDENTITY	NOT NULL,
+	SpecimenID		INT		REFERENCES Specimen(SpecimenID)	NOT NULL,
+	MeasurementType	VARCHAR(30)							NOT NULL,
+	Measurement		DECIMAL								NOT NULL
 )
 GO
 
@@ -164,29 +169,15 @@ CREATE TABLE SpeciesAndCommonNames(
 )
 GO
 
-	/***** TABLE Species' Images *****/
-CREATE TABLE SpeciesImages(
-	SpeciesImagesID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
+	/***** TABLE Species' Media (images, video, audio) *****/
+CREATE TABLE SpeciesMedia(
+	SpeciesMediaID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
 	SpeciesID			INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	ImageURL			varchar(1000)							NOT NULL,
-	FriendlyName		varchar(100)							NOT NULL
+	[URL]					varchar(1000)							NOT NULL,
+	IsProtected			BIT										NOT NULL,
+	FriendlyName		varchar(100)							NOT NULL,
+	SpecimenID			INT		REFERENCES	Specimen(SpecimenID)	NULL,
+	PartTypeID			INT		REFERENCES	PartType(PartTypeID)	NULL
 )
-GO
 
-	/***** TABLE Species' Audio *****/
-CREATE TABLE SpeciesAudio(
-	SpeciesAudioID			INT		PRIMARY KEY		IDENTITY		NOT NULL,
-	SpeciesID				INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	AudioURL				varchar(1000)							NOT NULL,
-	FriendlyName			varchar(100)							NOT NULL
-)
-GO
-
-	/***** TABLE Species' Video *****/
-CREATE TABLE SpeciesVideo(
-	SpeciesVideoID	INT		PRIMARY KEY		IDENTITY		NOT NULL,
-	SpeciesID				INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	VideoURL				varchar(100)							NOT NULL,
-	FriendlyName			varchar(100)							NOT NULL
-)
 
