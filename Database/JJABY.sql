@@ -173,7 +173,8 @@ GO
 CREATE TABLE SpeciesMedia(
 	SpeciesMediaID		INT		PRIMARY KEY		IDENTITY		NOT NULL,
 	SpeciesID			INT		REFERENCES	Species(SpeciesID)	NOT NULL,
-	[URL]					varchar(1000)							NOT NULL,
+	MediaType			VARCHAR(15)								NOT NULL,
+	[MediaURL]					varchar(1000)							NOT NULL,
 	IsProtected			BIT										NOT NULL,
 	FriendlyName		varchar(100)							NOT NULL,
 	SpecimenID			INT		REFERENCES	Specimen(SpecimenID)	NULL,
